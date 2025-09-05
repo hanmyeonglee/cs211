@@ -68,8 +68,8 @@ int addOK(int x, int y) {
  *   Rating: 4
  */
 int absVal(int x) {
-  int sign = x >> 31;
-  return (x ^ sign) + (sign & 1);
+  int mask = x >> 31;
+  return (x ^ mask) + (mask & 1);
 }
 
 
