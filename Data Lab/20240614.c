@@ -51,10 +51,9 @@ int isZero(int x) {
  *   Rating: 3
  */
 int addOK(int x, int y) {
-  int sign_x = (x >> 31) & 1;
-  int sign_y = (y >> 31) & 1;
-  int sign_sm = ((x + y) >> 31) & 1;
-  return sign_x ^ sign_y | sign_x ^ sign_sm ^ 1;
+  return !(
+    (~(x ^ y) & (x + y ^ x)) >> 31
+  );
 }
 
 
