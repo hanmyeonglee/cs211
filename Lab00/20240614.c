@@ -24,8 +24,7 @@ LAB L1 INSTRUCTIONS:
  */
 
 int bitNor(int x, int y) {
-  //to be implemented
-  return 0;
+  return ~x & ~y;
 }
 
 
@@ -38,8 +37,7 @@ int bitNor(int x, int y) {
  *   Rating: 1
  */
 int isZero(int x) {
-  //to be implemented
-  return 0;
+  return !x;
 }
 
 
@@ -53,8 +51,10 @@ int isZero(int x) {
  *   Rating: 3
  */
 int addOK(int x, int y) {
-  //to be implemented
-  return 0;
+  int sign_x = (x >> 31) & 1;
+  int sign_y = (y >> 31) & 1;
+  int sign_sm = ((x + y) >> 31) & 1;
+  return sign_x ^ sign_y | sign_x ^ sign_sm ^ 1;
 }
 
 
@@ -68,8 +68,8 @@ int addOK(int x, int y) {
  *   Rating: 4
  */
 int absVal(int x) {
-  //to be implemented
-  return 0;
+  int sign = x >> 31;
+  return (x ^ sign) + (sign & 1);
 }
 
 
@@ -83,7 +83,6 @@ int absVal(int x) {
  *   Rating: 3 
  */
 int logicalShift(int x, int n) {
-  //to be implemented
-  return 0;
+  return x >> n & ~(1 << 31 >> n << 1);
 }
 
