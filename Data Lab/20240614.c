@@ -82,6 +82,6 @@ int absVal(int x) {
  *   Rating: 3 
  */
 int logicalShift(int x, int n) {
-  return x >> n & ~(1 << 31 >> n << 1);
+  return x >> n & ~(0x80000000 >> n << 1);
 }
 
