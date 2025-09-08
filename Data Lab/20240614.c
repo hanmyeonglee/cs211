@@ -81,8 +81,8 @@ int absVal(int x) {
  *   Max ops: 20
  *   Rating: 3 
  */
-#define INT_MIN (~(0x7F << 24 | 0xFF << 16 | 0xFF << 8 | 0xFF))
 int logicalShift(int x, int n) {
+  int INT_MIN = (~(0x7F << 24 | 0xFF << 16 | 0xFF << 8 | 0xFF));
   return x >> n & ~(INT_MIN >> n << 1);
 }
 
