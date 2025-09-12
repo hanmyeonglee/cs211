@@ -204,7 +204,12 @@ int isLess(int x, int y) {
  *   Rating: 2
  */
 unsigned float_abs(unsigned uf) {
-  return 2;
+  int isNan = !(uf & 0x7f800000 ^ 0x7f800000) & !!(uf & 0x7fffff);
+  if (isNan) {
+    return uf;
+  }
+
+  return uf & 0x7fffffff;
 }
 /* 
  * float_twice - Return bit-level equivalent of expression 2*f for
