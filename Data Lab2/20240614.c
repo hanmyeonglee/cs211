@@ -185,7 +185,12 @@ int negate(int x) {
  *   Rating: 3
  */
 int isLess(int x, int y) {
-  return 2;
+   int x_sign = (x >> 31) & 1;
+   int y_sign = (y >> 31) & 1;
+   int is_xy_sign_diff = x_sign ^ y_sign;
+   int diff = x + (~y + 1);
+   int diff_sign = (diff >> 31) & 1;
+   return (is_xy_sign_diff & x_sign) | (!is_xy_sign_diff & diff_sign);
 }
 /* 
  * float_abs - Return bit-level equivalent of absolute value of f for
