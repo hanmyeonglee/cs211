@@ -223,7 +223,29 @@ unsigned float_abs(unsigned uf) {
  *   Rating: 4
  */
 unsigned float_twice(unsigned uf) {
-  return 2;
+  int sign = uf & 0x80000000;
+  int exp = uf >> 23 & 0xff;
+  int frac = uf & 0x7fffff;
+
+  if (exp == 0xff) {
+    return uf;
+  }
+
+  if (exp == 0xfe) {
+    return sign | 0x7f800000;
+  }
+
+  if (exp == 0) {
+    frac <<= 1;
+    if (frac & 0x800000) {
+      exp = 1;
+      frac &= 0x7fffff;
+    }
+    
+    return sign | (exp << 23) | frac;
+  }
+
+  return uf + 0x800000;
 }
 /* 
  * float_i2f - Return bit-level equivalent of expression (float) x
