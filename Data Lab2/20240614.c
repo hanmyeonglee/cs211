@@ -185,12 +185,12 @@ int negate(int x) {
  *   Rating: 3
  */
 int isLess(int x, int y) {
-   int x_sign = (x >> 31) & 1;
-   int y_sign = (y >> 31) & 1;
+   int x_sign = x >> 31 & 1;
+   int y_sign = y >> 31 & 1;
    int is_xy_sign_diff = x_sign ^ y_sign;
    int diff = x + (~y + 1);
-   int diff_sign = (diff >> 31) & 1;
-   return (is_xy_sign_diff & x_sign) | (!is_xy_sign_diff & diff_sign);
+   int diff_sign = diff >> 31 & 1;
+   return is_xy_sign_diff & x_sign | !is_xy_sign_diff & diff_sign;
 }
 /* 
  * float_abs - Return bit-level equivalent of absolute value of f for
@@ -204,7 +204,7 @@ int isLess(int x, int y) {
  *   Rating: 2
  */
 unsigned float_abs(unsigned uf) {
-  int isNan = !(uf & 0x7f800000 ^ 0x7f800000) & !!(uf & 0x7fffff);
+  int isNan = !(uf & 0x7f800000 ^ 0x7f800000) && !!(uf & 0x7fffff);
   if (isNan) {
     return uf;
   }
@@ -241,7 +241,7 @@ unsigned float_twice(unsigned uf) {
       exp = 1;
       frac &= 0x7fffff;
     }
-    
+
     return sign | (exp << 23) | frac;
   }
 
