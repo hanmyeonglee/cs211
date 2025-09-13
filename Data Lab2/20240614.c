@@ -204,7 +204,7 @@ int isLess(int x, int y) {
  *   Rating: 2
  */
 unsigned float_abs(unsigned uf) {
-  int isNan = !(uf & 0x7f800000 ^ 0x7f800000) && !!(uf & 0x7fffff);
+  int isNan = ((uf & 0x7f800000) == 0x7f800000) && (uf & 0x7fffff);
   if (isNan) {
     return uf;
   }
