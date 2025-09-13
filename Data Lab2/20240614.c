@@ -190,7 +190,7 @@ int isLess(int x, int y) {
    int is_xy_sign_diff = x_sign ^ y_sign;
    int diff = x + (~y + 1);
    int diff_sign = diff >> 31 & 1;
-   return is_xy_sign_diff & x_sign | !is_xy_sign_diff & diff_sign;
+   return is_xy_sign_diff & x_sign | ~is_xy_sign_diff & diff_sign;
 }
 /* 
  * float_abs - Return bit-level equivalent of absolute value of f for
@@ -223,9 +223,9 @@ unsigned float_abs(unsigned uf) {
  *   Rating: 4
  */
 unsigned float_twice(unsigned uf) {
-  int sign = uf & 0x80000000u;
-  int exp = uf >> 23 & 0xff;
-  int frac = uf & 0x7fffff;
+  unsigned sign = uf & 0x80000000u;
+  unsigned exp = uf >> 23 & 0xff;
+  unsigned frac = uf & 0x7fffff;
 
   if (exp == 0xff) {
     return uf;
@@ -257,20 +257,24 @@ unsigned float_twice(unsigned uf) {
  *   Rating: 4
  */
 unsigned float_i2f(int x) {
-  if (x == 0) return 0;
-  if (x == 0x80000000u) return 0xcf000000;
-
+  // C89 Rule, variable declaration must be at the beginning of a block
+  // I don't know why dlc requires this, but whatever...
   unsigned sign = 0;
   unsigned exp = 127;
   unsigned frac = 0;
 
+  int n;
+  int length = 0;
+
+  if (x == 0) return 0;
+  if (x == 0x80000000u) return 0xcf000000;
+
   if (x < 0) {
-    sign = 0x80000000;
+    sign = 0x80000000u;
     x = -x;
   }
 
-  int n = x;
-  int length = 0;
+  n = x;
   while (n) {
     n >>= 1;
     length++;
