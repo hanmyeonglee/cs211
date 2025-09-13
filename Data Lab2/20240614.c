@@ -315,5 +315,41 @@ unsigned float_i2f(int x) {
  *   Rating: 4
  */
 int float_f2i(unsigned uf) {
-  return 2;
+  int OOR = 0x80000000u;
+
+  int sign = uf >> 31 & 1;
+  int exp = (uf >> 23 & 0xff) - 0x7f;
+  int frac = uf & 0x7fffff | 0x800000;
+
+  int isLimit = exp == 0x80;
+  if (isLimit) return OOR;
+
+  if (exp < 0) return 0;
+  if (exp > 30) return OOR;
+  if (exp == 0) {
+    frac = 1 + ((frac & 0x400000) >> 22);
+    if (sign) frac = -frac;
+
+    return frac;
+  }
+
+  if (exp >= 23) {
+    frac <<= exp - 23;
+  } else {
+    int shift = 23 - exp;
+    int half = 1 << (exp - 1);
+    int fraction = frac >> shift;
+    int remaining_bit = frac - (fraction << shift);
+
+    int isOdd = fraction & 1;
+    int isJustHalf = remaining_bit == half;
+    int isGreaterHalf = remaining_bit > half;
+    int isCeiled = isGreaterHalf | isJustHalf & isOdd;
+
+    frac = fraction + isCeiled;
+  }
+
+  if (sign) frac = -frac;
+
+  return frac;
 }
