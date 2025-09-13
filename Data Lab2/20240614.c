@@ -325,19 +325,9 @@ int float_f2i(unsigned uf) {
   if (exp >= 23) {
     frac <<= exp - 23;
   } else {
-    int shift = 23 - exp;
-    int half = 1 << (shift - 1);
-    int fraction = frac >> shift;
-    int remaining_bit = frac - (fraction << shift);
-
-    int isOdd = fraction & 1;
-    int isJustHalf = remaining_bit == half;
-    int isGreaterHalf = remaining_bit > half;
-    int isCeiled = isGreaterHalf | isJustHalf & isOdd;
-    frac = fraction + isCeiled;
+    frac >>= 23 - exp;
   }
 
   if (sign) frac = -frac;
-
   return frac;
 }
