@@ -223,7 +223,7 @@ unsigned float_abs(unsigned uf) {
  *   Rating: 4
  */
 unsigned float_twice(unsigned uf) {
-  int sign = uf & 0x80000000;
+  int sign = uf & 0x80000000u;
   int exp = uf >> 23 & 0xff;
   int frac = uf & 0x7fffff;
 
@@ -258,7 +258,7 @@ unsigned float_twice(unsigned uf) {
  */
 unsigned float_i2f(int x) {
   if (x == 0) return 0;
-  if (x == -0x7fffffff - 1) return 0xcf000000;
+  if (x == 0x80000000u) return 0xcf000000;
 
   unsigned sign = 0;
   unsigned exp = 127;
@@ -278,23 +278,22 @@ unsigned float_i2f(int x) {
 
   exp += length - 1;
   if (length <= 24) {
-     frac = x << (24 - length) & 0x7fffff;
+     frac = x << (24 - length);
   } else {
-     int shift = length - 24;
-     unsigned fraction = x >> shift;
-     unsigned remaining_bit = x - (fraction << shift);
-
-     int half = 1 << (shift - 1);
-     int ceil = (remaining_bit > half) | ((remaining_bit == half) & (fraction & 1));
-     frac = (fraction + ceil);
-     if (frac >> 24) {
-       exp += 1;
-       frac >>= 1;
-     }
-     
-     frac &= 0x7fffff;
+    int shift = length - 24;
+    unsigned fraction = x >> shift;
+    unsigned remaining_bit = x - (fraction << shift);
+    
+    int half = 1 << (shift - 1);
+    int ceil = (remaining_bit > half) | ((remaining_bit == half) & (fraction & 1));
+    frac = fraction + ceil;
+    if (frac >> 24) {
+      exp++;
+      frac >>= 1;
+    }
   }
-
+    
+  frac &= 0x7fffff;
   return sign | exp << 23 | frac;
 }
 /* 
