@@ -257,7 +257,50 @@ unsigned float_twice(unsigned uf) {
  *   Rating: 4
  */
 unsigned float_i2f(int x) {
-  return 2;
+  if (x == 0) return 0;
+  if (x == -0x7fffffff - 1) return 0xcf000000;
+
+  int f_length = 23;
+  int extended_f_length = 24;
+  unsigned sign = 0;
+  unsigned exp = 127;
+  unsigned frac = 0;
+
+  if (x < 0) {
+    sign = 0x80000000;
+    x = -x;
+  }
+
+  int n = x;
+  int msb_position = 0;
+  while (n) {
+    n >>= 1;
+    msb_position++;
+  }
+
+  exp += msb_position - 1;
+  if (msb_position <= extended_f_length) {
+     frac = x << (extended_f_length - msb_position) & 0x7fffff;
+  } else {
+     int shift = msb_position - extended_f_length;
+     unsigned fraction = x >> shift;
+     unsigned remaining_bit = x - (fraction << shift);
+
+     int half = 1 << (shift - 1);
+     int isOdd = fraction & 1;
+     int isJustHalf = remaining_bit == half;
+     int isGreaterHalf = remaining_bit > half;
+     int isCeiled = isGreaterHalf | isJustHalf & isOdd;
+     frac = (fraction + isCeiled);
+     if (frac >> extended_f_length ^ 0) {
+       exp += 1;
+       frac >>= 1;
+     }
+     
+     frac &= (1 << f_length) - 1;
+  }
+
+  return sign | exp << f_length | frac;
 }
 /* 
  * float_f2i - Return bit-level equivalent of expression (int) f
