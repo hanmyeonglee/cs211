@@ -282,14 +282,14 @@ unsigned float_i2f(int x) {
 
   exp += length - 1;
   if (length <= 24) {
-     frac = x << (24 - length);
+    frac = x << (24 - length);
   } else {
     int shift = length - 24;
     unsigned fraction = x >> shift;
-    unsigned remaining_bit = x - (fraction << shift);
+    unsigned rem = x - (fraction << shift);
     
     int half = 1 << (shift - 1);
-    int ceil = (remaining_bit > half) | ((remaining_bit == half) & (fraction & 1));
+    int ceil = (rem > half) | ((rem == half) & (fraction & 1));
     frac = fraction + ceil;
     if (frac >> 24) {
       exp++;
@@ -319,7 +319,7 @@ int float_f2i(unsigned uf) {
   int exp = (uf >> 23 & 0xff) - 0x7f;
   int frac = uf & 0x7fffff | 0x800000;
 
-  if (exp == 0x80 || exp > 30) return OOR;
+  if (exp > 30) return OOR;
   if (exp < 0) return 0;
 
   if (exp >= 23) {
