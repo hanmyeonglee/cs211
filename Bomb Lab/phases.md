@@ -17,9 +17,7 @@ if string != "I am for medical liability at the federal level.": explode_bomb()
 
 ### Input Solution
 
-> `0 0 0 0 0 0`  
-`1 2 4 8 16 32`  
-`...`
+> `1 2 4 8 16 32`
 
 ### Pseudocode
 
@@ -68,6 +66,8 @@ if b != target: explode_bomb()
 ### Input Solution
 
 > `7 7`
+
+> `7 7 DrJisunPark` (if you want `secret_phase`)
 
 ### Pseudocode
 
@@ -119,7 +119,7 @@ if y != 15 or a != x: explode_bomb()
 
 ### Input Solution
 
->
+> 6 3 1 4 2 5
 
 ### Pseudocode
 
@@ -127,18 +127,11 @@ if y != 15 or a != x: explode_bomb()
 nums = list(map(int, input().split()))
 assert len(nums) == 6
 
-i = 0
-for num in nums:
-    if num > 6: explode_bomb()
-
-    i += 1
-    if i == 6: break
-
-    j = i
-
-    while j < 6:
-        if num == nums[j]: explode_bomb()
-        j += 1
+if (
+    any(num > 6 for num in nums) or
+    len(set(nums)) < 6
+):
+    explode_bomb()
 
 class Node:
     def __init__(self, id, val):
@@ -165,13 +158,38 @@ for i in range(0, 24, 4):
     node = node1
     if n > 1:
         j = 1
-        node = node1
         while j < n:
             node = node.next
             j += 1
     
     nodes.append(node)
 
-while True:
-    
+for n1, n2 in zip(nodes[:-1], nodes[1:]):
+    if n1.val > n2.val: explode_bomb()
+```
+
+## Secret Phase
+
+### Input Solution
+
+> `35`
+
+### Pseudocode
+
+```py
+def recfunc(tree, i, number):
+    if i >= len(tree): return -1
+
+    N = tree[i]
+    if N > number:
+        return 2 * recfunc(tree, 2 * i + 1, number)
+    elif N < number:
+        return 2 * recfunc(tree, 2 * i + 2, number) + 1
+    else:
+        return 0
+
+TREE = [0x24, 0x8, 0x32, 0x6, 0x16, 0x2d, 0x6b, 0x1, 0x7, 0x14, 0x23, 0x28, 0x2f, 0x63, 0x3e9]
+n = int(input())
+if n > 1001: explode_bomb()
+if recfunc(TREE, 0, n) != 6: explode_bomb()
 ```
