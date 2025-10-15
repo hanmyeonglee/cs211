@@ -2,3 +2,9 @@
 __pycache__/
 
 20240614.pdf
+
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.png
