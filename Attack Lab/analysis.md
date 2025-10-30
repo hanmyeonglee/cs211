@@ -75,8 +75,18 @@ getbuf 실행 <- bof 직전 함수
 ## 14. ROPGadget
 
 ```
-(base) nemo@Nemo:/mnt/c/Users/ejong/Workspace/POSTECH/cs211/Attack Lab$ ROPgadget --binary ./ctarget | grep "pop rdi"
+nemo@Nemo:/mnt/c/Users/ejong/Workspace/POSTECH/cs211/Attack Lab$ ROPgadget --binary ./ctarget | grep "pop rdi"
 0x00000000004028f0 : pop rdi ; ret
 ```
 
 # rtarget 분석
+
+## 1. main
+
+ctarget과 거의 비슷함, 다만 stable_launch에서 그냥 launch 호출로 바뀜
+
+## 2. initialize_target
+
+ctarget과 동일
+
+## 3. 

