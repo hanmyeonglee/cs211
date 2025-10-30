@@ -34,3 +34,40 @@ BOF 대상 함수
 ## 7. touch 3
 
 인자로 cookie string addr를 넘기고 그게 cookie hex와 같아야 함
+
+## 8. flags of ctarget
+
+```txt
+-i <infile>  Input file
+-l <level>   Attack level
+```
+
+## 9. main
+
+segfault, buserror, illegalinstruction error에 대한 핸들러 지정
+is_checker는 아마 검사하는 사람인지 검사하는 목적이라 별 상관 없을듯
+옵션 검사해서 각 flag에 맞춰 세팅하고
+initialize_target 호출
+이후 cookie의 값을 출력한 후 stable_launch 실행(bus offset을 인자로 넘김)
+
+## 10. initialize_target
+
+설정한 레벨과 target_id를 통해 cookie 설정하고, cookie로 authkey를 설정해 bss에 global로 처리하고
+srandom을 target_id+1로 설정함
+
+random값을 scramble을 통해 섞은 후에 bus_offset에 8 * scrambled_random + 256으로 설정
+target_prefix 맨 앞을 c로 설정한 후
+notify대상이면서 checker가 아니면 호스트 검사, 서버에서 실행하는지 검사함
+
+## 11. stable_launch
+
+뭔가 메모리 설정 하고 해제하는거 함, stack 조정해서 아예 권한 탈취하는걸 방지하는건가
+그리고 launch로 받은 offset주고 실행함
+
+## 12. launch
+
+input 받을 공간 대충 만들고 test함수 실행
+
+## 13. test
+
+getbuf 실행 <- bof 직전 함수
