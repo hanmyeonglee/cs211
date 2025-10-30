@@ -71,3 +71,10 @@ input 받을 공간 대충 만들고 test함수 실행
 ## 13. test
 
 getbuf 실행 <- bof 직전 함수
+
+## 14. ROPGadget
+
+```
+(base) nemo@Nemo:/mnt/c/Users/ejong/Workspace/POSTECH/cs211/Attack Lab$ ROPgadget --binary ./ctarget | grep "pop rdi"
+0x00000000004028f0 : pop rdi ; ret
+```
