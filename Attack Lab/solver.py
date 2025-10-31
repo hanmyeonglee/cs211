@@ -43,7 +43,14 @@ def solve_ctarget(solution: bytes, flag: bool, level: int) -> None:
     
     proc = process(['./ctarget', '-q'])
     proc.sendline(solution)
-    proc.interactive()
+    
+    try:
+        messasge = proc.recvall()
+        print(messasge.decode(errors='ignore'))
+    except EOFError:
+        pass
+    finally:
+        proc.close()
 
 def solve_rtarget(solution: bytes, flag: bool, level: int) -> None:
     if flag:
@@ -52,7 +59,14 @@ def solve_rtarget(solution: bytes, flag: bool, level: int) -> None:
     
     proc = process(['./rtarget', '-q'])
     proc.sendline(solution)
-    proc.interactive()
+    
+    try:
+        messasge = proc.recvall()
+        print(messasge.decode(errors='ignore'))
+    except EOFError:
+        pass
+    finally:
+        proc.close()
         
 def solve_level_1(flag: bool) -> None:
     solution = (
@@ -113,9 +127,22 @@ def solve_level_5(flag: bool) -> None:
     solve_rtarget(solution, flag, 5)
 
 @click.command()
-@click.option("--level", "-l", help="level to solve", required=True, type=int)
+@click.option("--level", "-l", help="level to solve", type=int, default=-1)
 @click.option("--output", "-o", is_flag=True, help="print the solution instead of executing it", type=bool, default=False)
-def main(level: int, output: bool):
+@click.option("--all", "-a", is_flag=True, help="solve all levels", type=bool, default=False)
+def main(level: int, output: bool, all: bool) -> None:
+    if level == -1 and not all:
+        click.echo("Please specify a level using --level or use --all to solve all levels.")
+        return
+    
+    if all:
+        for lvl in range(1, 6):
+            click.echo(f"Solving level {lvl}...")
+            binary_path = get_solution_func(lvl)
+            binary_path(output)
+        
+        return
+
     if not check_level(level):
         click.echo(f"Invalid level: {level}")
         return
