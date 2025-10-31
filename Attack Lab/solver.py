@@ -138,8 +138,8 @@ def main(level: int, output: bool, all: bool) -> None:
     if all:
         for lvl in range(1, 6):
             click.echo(f"Solving level {lvl}...")
-            binary_path = get_solution_func(lvl)
-            binary_path(output)
+            solve_func = get_solution_func(lvl)
+            solve_func(output)
         
         return
 
@@ -147,8 +147,8 @@ def main(level: int, output: bool, all: bool) -> None:
         click.echo(f"Invalid level: {level}")
         return
 
-    binary_path = get_solution_func(level)
-    binary_path(output)
+    solve_func = get_solution_func(level)
+    solve_func(output)
 
 if __name__ == "__main__":
     main()
