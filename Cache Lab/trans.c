@@ -34,6 +34,30 @@ void transpose_submit(int M, int N, int A[N][M], int B[M][N])
                 }
             }
         }
+    } else if (M == 32 && N == 32) {
+        for (cblock = 0 ; cblock < 32 ; cblock += 8) {
+            for (rblock = 0 ; rblock < 32 ; rblock += 8) {
+                for (i = rblock ; i < rblock + 8 ; i++) {
+                    v0 = A[i][cblock];
+                    v1 = A[i][cblock + 1];
+                    v2 = A[i][cblock + 2];
+                    v3 = A[i][cblock + 3];
+                    v4 = A[i][cblock + 4];
+                    v5 = A[i][cblock + 5];
+                    v6 = A[i][cblock + 6];
+                    v7 = A[i][cblock + 7];
+                    
+                    B[cblock][i] = v0;
+                    B[cblock + 1][i] = v1;
+                    B[cblock + 2][i] = v2;
+                    B[cblock + 3][i] = v3;
+                    B[cblock + 4][i] = v4;
+                    B[cblock + 5][i] = v5;
+                    B[cblock + 6][i] = v6;
+                    B[cblock + 7][i] = v7;
+                }
+            }
+        }
     }
 }
 
