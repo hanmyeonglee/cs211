@@ -202,7 +202,6 @@ int main(int argc, char *argv[])
             (op != 'L' && op != 'S' && op != 'M' && op != 'I') ||
             cnt != 3
         ) {
-            free(line);
             printf("Invalid trace line: %s\n", line);
             exit(1);
         }
@@ -224,10 +223,10 @@ int main(int argc, char *argv[])
                 printf("%c %lx,%lu %s\n", op, addr, size, result);
             }
         }
-
-        free(line);
     }
 
     printSummary(hits, misses, evictions);
+
+    free(cache);
     return 0;
 }
