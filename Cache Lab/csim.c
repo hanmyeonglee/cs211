@@ -126,6 +126,7 @@ int main(int argc, char *argv[])
         switch (opt) {
             case 'h':
                 usage();
+                break;
             case 'v':
                 verbose = true;
                 break;
@@ -144,6 +145,7 @@ int main(int argc, char *argv[])
             default:
                 printf("%s is not a valid option\n", argv[optind - 1]);
                 usage();
+                break;
         }
     }
 
