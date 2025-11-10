@@ -148,15 +148,20 @@ int main(int argc, char *argv[])
         }
     }
 
-    FILE *fp = fopen(trace_file, "r");
     // check required arguments
-    if (
-        s == -1 || E == -1 || b == -1 || 
-        trace_file == NULL || fp == NULL ||
-        s > 64 - b
-    ) {
+    if (s == -1 || E == -1 || b == -1 || trace_file == NULL) {
         printf("Missing required command line argument\n");
         usage();
+    }
+
+    if (s > 64 - b) {
+        printf("Invalid arguments: s + b must not exceed 64\n");
+        usage();
+    }
+
+    FILE *fp = fopen(trace_file, "r");
+    if (fp == NULL) {
+        printf("Error: Could not open trace file '%s'\n", trace_file);
         exit(1);
     }
 
