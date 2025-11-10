@@ -77,8 +77,7 @@ char *strip(char *s) {
 char *access(
     cache_t cache,
     addr_t set_index,
-    addr_t tag,
-    addr_t block_offset
+    addr_t tag
 ) {
     lru_timestamp++;
 
@@ -213,13 +212,12 @@ int main(int argc, char *argv[])
 
         if (op == 'I') continue;
 
-        addr_t block_offset = addr & (B - 1);
         addr_t set_index = (addr >> b) & (S - 1);
         addr_t tag = addr >> (b + s);
 
-        char *result = access(cache, set_index, tag, block_offset);
+        char *result = access(cache, set_index, tag);
         if (op == 'M') {
-            char *result2 = access(cache, set_index, tag, block_offset);
+            char *result2 = access(cache, set_index, tag);
             if (verbose) {
                 printf("%c %lx,%lu %s %s\n", op, addr, size, result, result2);
             }
