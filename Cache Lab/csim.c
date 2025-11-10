@@ -112,7 +112,7 @@ char *access(
 
     set[lru_index].tag = tag;
     set[lru_index].timestamp = lru_timestamp;
-    return "eviction";
+    return "miss eviction";
 }
 
 int main(int argc, char *argv[])
@@ -213,7 +213,17 @@ int main(int argc, char *argv[])
         addr_t set_index = (addr >> b) & (S - 1);
         addr_t tag = addr >> (b + s);
 
-        
+        char *result = access(cache, set_index, tag, block_offset);
+        if (op == 'M') {
+            char *result2 = access(cache, set_index, tag, block_offset);
+            if (verbose) {
+                printf("%c %lx,%lu %s %s\n", op, addr, size, result, result2);
+            }
+        } else {
+            if (verbose) {
+                printf("%c %lx,%lu %s\n", op, addr, size, result);
+            }
+        }
 
         free(line);
     }
