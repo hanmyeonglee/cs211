@@ -3,6 +3,8 @@
 #include <getopt.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
+#include <string.h>
 
 #define ASSUMED_LINE_LENGTH 256
 
@@ -20,7 +22,7 @@ void usage() {
     exit(1);
 }
 
-char *get_next_line(FILE *fp, bool keepends) {
+char *get_next_line(FILE *fp) {
     char *line = NULL;
     char buffer[ASSUMED_LINE_LENGTH];
     size_t size = 0, len = 0;
@@ -43,11 +45,6 @@ char *get_next_line(FILE *fp, bool keepends) {
         strcpy(line + len, buffer);
         len += buffer_len;
         if (buffer[buffer_len - 1] == '\n') {
-            if (!keepends) {
-                line[len - 1] = '\0';
-            } else {
-                line[len] = '\0';
-            }
             break;
         }
     }
@@ -55,8 +52,39 @@ char *get_next_line(FILE *fp, bool keepends) {
     return line;
 }
 
-char *get_next_line(FILE *fp) {
-    return get_next_line(fp, false);
+char *lstrip(char *s) {
+    while (isspace((unsigned char)*s)) {
+        s++;
+    }
+    
+    return s;
+}
+
+char *rstrip(char *s) {
+    char *back;
+    size_t len = strlen(s);
+
+    if (len == 0) {
+        return s;
+    }
+
+    back = s + len - 1;
+    while (back >= s && isspace((unsigned char)*back)) {
+        back--;
+    }
+    
+    *(back + 1) = '\0';
+    return s;
+}
+
+char *strip(char *s) {
+    char *trimmed_start = lstrip(s);
+
+    if (trimmed_start != s) {
+        memmove(s, trimmed_start, strlen(trimmed_start) + 1);
+    }
+    
+    return rstrip(s);
 }
 
 int main(int argc, char *argv[])
