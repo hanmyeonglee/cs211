@@ -1,9 +1,3 @@
-import subprocess
-import re
-import os
-import sys
-import optparse
-
 #!/usr/bin/python3
 #
 # driver.py - The driver tests the correctness of the student's cache
@@ -13,6 +7,12 @@ import optparse
 #     matrices (32x32, 64x64, and 61x67) to test the correctness and
 #     performance of the transpose function.
 #
+
+import subprocess
+import re
+import os
+import sys
+import optparse
 
 #
 # computeMissScore - compute the score depending on the number of
