@@ -6,14 +6,20 @@
 #include <ctype.h>
 #include <string.h>
 
+int lru_timestamp = 0;
+
 #define ASSUMED_LINE_LENGTH 256
+
+bool verbose = false;
+int s = -1, E = -1, b = -1;
+int hits = 0, misses = 0, evictions = 0;
 
 typedef unsigned long addr_t;
 
 typedef struct {
     bool valid;
     addr_t tag;
-    int lru_counter;
+    int timestamp;
 } cache_line_t;
 
 typedef cache_line_t* cache_set_t;
@@ -68,14 +74,51 @@ char *strip(char *s) {
     return rstrip(s);
 }
 
+char *access(
+    cache_t cache,
+    addr_t set_index,
+    addr_t tag,
+    addr_t block_offset
+) {
+    lru_timestamp++;
+
+    cache_set_t set = cache[set_index];
+    for (int i = 0; i < E; i++) {
+        if (set[i].valid && set[i].tag == tag) {
+            hits++;
+            
+            set[i].timestamp = lru_timestamp;
+            return "hit";
+        }
+    }
+    
+    misses++;
+    for (int i = 0; i < E; i++) {
+        if (!set[i].valid) {
+            set[i].valid = true;
+            set[i].tag = tag;
+            set[i].timestamp = lru_timestamp;
+            return "miss";
+        }
+    }
+    
+    evictions++;
+    int lru_index = 0;
+    for (int i = 1; i < E; i++) {
+        if (set[i].timestamp < set[lru_index].timestamp) {
+            lru_index = i;
+        }
+    }
+
+    set[lru_index].tag = tag;
+    set[lru_index].timestamp = lru_timestamp;
+    return "eviction";
+}
+
 int main(int argc, char *argv[])
 {
     int opt;
-    bool verbose = false;
     char *trace_file = NULL;
-
-    int s, b, E;
-    s = b = E = -1;
     
     while(
         opt = getopt(argc, argv, "hvs:E:b:t:"),
@@ -119,7 +162,6 @@ int main(int argc, char *argv[])
 
     int S = 1 << s;
     int B = 1 << b;
-    int hits = 0, misses = 0, evictions = 0;
 
     cache_t cache = malloc(S * sizeof(cache_set_t));
     for (int i = 0; i < S; i++) {
@@ -127,7 +169,7 @@ int main(int argc, char *argv[])
         for (int j = 0; j < E; j++) {
             cache[i][j].valid = false;
             cache[i][j].tag = 0;
-            cache[i][j].lru_counter = 0;
+            cache[i][j].timestamp = lru_timestamp;
         }
     }
 
@@ -156,7 +198,10 @@ int main(int argc, char *argv[])
             token = strtok(NULL, " ,");
         }
 
-        if (cnt != 3) {
+        if (
+            (op != 'L' && op != 'S' && op != 'M' && op != 'I') ||
+            cnt != 3
+        ) {
             free(line);
             printf("Invalid trace line: %s\n", line);
             exit(1);
@@ -168,24 +213,7 @@ int main(int argc, char *argv[])
         addr_t set_index = (addr >> b) & (S - 1);
         addr_t tag = addr >> (b + s);
 
-        cache_set_t set = cache[set_index];
-        bool hit = false;
-        for (int i = 0; i < E; i++) {
-            if (set[i].valid && set[i].tag == tag) {
-                hit = true;
-                hits++;
-                if (verbose) {
-                    printf("%c %lx,%lu hit\n", op, addr, size);
-                }
-                
-                set[i].lru_counter = 0;
-                for (int j = 0; j < E; j++) {
-                    if (j != i && set[j].valid) {
-                        set[j].lru_counter++;
-                    }
-                }
-            }
-        }
+        
 
         free(line);
     }
