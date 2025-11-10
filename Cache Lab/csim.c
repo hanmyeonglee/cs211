@@ -8,6 +8,17 @@
 
 #define ASSUMED_LINE_LENGTH 256
 
+typedef unsigned long ul_t;
+
+typedef struct {
+    int valid;
+    ul_t tag;
+    int lru_counter;
+} cache_line_t;
+
+typedef cache_line_t* cache_set_t;
+typedef cache_set_t* cache_t;
+
 void usage() {
     puts(
         "Usage: ./csim [-hv] -s <s> -E <E> -b <b> -t <tracefile>\n"
@@ -20,36 +31,6 @@ void usage() {
         "  -t <filename> :  Name of the `valgrind` trace to replay\n"
     );
     exit(1);
-}
-
-char *get_next_line(FILE *fp) {
-    char *line = NULL;
-    char buffer[ASSUMED_LINE_LENGTH];
-    size_t size = 0, len = 0;
-
-    while(
-        fgets(buffer, ASSUMED_LINE_LENGTH, fp) != NULL
-    ) {
-        size_t buffer_len = strlen(buffer);
-        if (len + buffer_len + 1 > size) {
-            size += ASSUMED_LINE_LENGTH;
-            char *temp = realloc(line, size);
-            if (temp == NULL) {
-                free(line);
-                return NULL;
-            }
-
-            line = temp;
-        }
-
-        strcpy(line + len, buffer);
-        len += buffer_len;
-        if (buffer[buffer_len - 1] == '\n') {
-            break;
-        }
-    }
-
-    return line;
 }
 
 char *lstrip(char *s) {
@@ -85,6 +66,10 @@ char *strip(char *s) {
     }
     
     return rstrip(s);
+}
+
+void access_cache(cache_t cache, ul_t block_offset, ul_t set_index, ul_t tag) {
+    // To be implemented
 }
 
 int main(int argc, char *argv[])
@@ -126,28 +111,41 @@ int main(int argc, char *argv[])
 
     FILE *fp = fopen(trace_file, "r");
     // check required arguments
-    if (s == -1 || E == -1 || b == -1 || trace_file == NULL || fp == NULL) {
+    if (
+        s == -1 || E == -1 || b == -1 || 
+        trace_file == NULL || fp == NULL ||
+        s > 64 - b
+    ) {
         printf("Missing required command line argument\n");
         usage();
         exit(1);
     }
 
-    int S = 1 << s; // number of sets
-    int B = 1 << b; // block size in bytes
+    int S = 1 << s;
+    int B = 1 << b;
     int hits = 0, misses = 0, evictions = 0;
 
-    char *line = NULL;
-    while (
-        line = get_next_line(fp),
-        line != NULL
-    ) {
-        line = strip(line);
-        char op = 0;
-        size_t addr = 0, size = 0, cnt = 0;
+    cache_t cache = malloc(S * sizeof(cache_set_t));
+    for (int i = 0; i < S; i++) {
+        cache[i] = malloc(E * sizeof(cache_line_t));
+        for (int j = 0; j < E; j++) {
+            cache[i][j].valid = 0;
+            cache[i][j].tag = 0;
+            cache[i][j].lru_counter = 0;
+        }
+    }
 
-        char *token = strtok(line, " ,");
+    char line[ASSUMED_LINE_LENGTH];
+    while (
+        fgets(line, ASSUMED_LINE_LENGTH, fp) != NULL
+    ) {
+        char *stripped_line = strip(line);
+        char op = 0;
+        ul_t addr = 0, size = 0, cnt = 0;
+
+        char *token = strtok(stripped_line, " ,");
         while (token != NULL && cnt < 3) {
-            switch (cnt++) {
+            switch (cnt) {
                 case 0:
                     op = token[0];
                     break;
@@ -155,9 +153,10 @@ int main(int argc, char *argv[])
                     addr = strtoul(token, NULL, 16);
                     break;
                 case 2:
-                    size = (size_t)atoi(token);
+                    size = (ul_t)atoi(token);
                     break;
             }
+            cnt++;
             token = strtok(NULL, " ,");
         }
 
@@ -168,6 +167,12 @@ int main(int argc, char *argv[])
         }
 
         if (op == 'I') continue;
+
+        ul_t block_offset = addr & (B - 1);
+        ul_t set_index = (addr >> b) & (S - 1);
+        ul_t tag = addr >> (b + s);
+
+        access_cache(cache, block_offset, set_index, tag);
 
         free(line);
     }
