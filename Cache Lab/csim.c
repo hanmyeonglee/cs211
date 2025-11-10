@@ -227,6 +227,11 @@ int main(int argc, char *argv[])
 
     printSummary(hits, misses, evictions);
 
+    for (int i = 0; i < S; i++) {
+        free(cache[i]);
+    }
     free(cache);
+    fclose(fp);
+    
     return 0;
 }
