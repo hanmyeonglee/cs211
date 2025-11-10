@@ -8,11 +8,11 @@
 
 #define ASSUMED_LINE_LENGTH 256
 
-typedef unsigned long ul_t;
+typedef unsigned long addr_t;
 
 typedef struct {
-    int valid;
-    ul_t tag;
+    bool valid;
+    addr_t tag;
     int lru_counter;
 } cache_line_t;
 
@@ -66,10 +66,6 @@ char *strip(char *s) {
     }
     
     return rstrip(s);
-}
-
-void access_cache(cache_t cache, ul_t block_offset, ul_t set_index, ul_t tag) {
-    // To be implemented
 }
 
 int main(int argc, char *argv[])
@@ -129,7 +125,7 @@ int main(int argc, char *argv[])
     for (int i = 0; i < S; i++) {
         cache[i] = malloc(E * sizeof(cache_line_t));
         for (int j = 0; j < E; j++) {
-            cache[i][j].valid = 0;
+            cache[i][j].valid = false;
             cache[i][j].tag = 0;
             cache[i][j].lru_counter = 0;
         }
@@ -141,7 +137,7 @@ int main(int argc, char *argv[])
     ) {
         char *stripped_line = strip(line);
         char op = 0;
-        ul_t addr = 0, size = 0, cnt = 0;
+        addr_t addr = 0, size = 0, cnt = 0;
 
         char *token = strtok(stripped_line, " ,");
         while (token != NULL && cnt < 3) {
@@ -153,7 +149,7 @@ int main(int argc, char *argv[])
                     addr = strtoul(token, NULL, 16);
                     break;
                 case 2:
-                    size = (ul_t)atoi(token);
+                    size = (addr_t)atoi(token);
                     break;
             }
             cnt++;
@@ -168,11 +164,28 @@ int main(int argc, char *argv[])
 
         if (op == 'I') continue;
 
-        ul_t block_offset = addr & (B - 1);
-        ul_t set_index = (addr >> b) & (S - 1);
-        ul_t tag = addr >> (b + s);
+        addr_t block_offset = addr & (B - 1);
+        addr_t set_index = (addr >> b) & (S - 1);
+        addr_t tag = addr >> (b + s);
 
-        access_cache(cache, block_offset, set_index, tag);
+        cache_set_t set = cache[set_index];
+        bool hit = false;
+        for (int i = 0; i < E; i++) {
+            if (set[i].valid && set[i].tag == tag) {
+                hit = true;
+                hits++;
+                if (verbose) {
+                    printf("%c %lx,%lu hit\n", op, addr, size);
+                }
+                
+                set[i].lru_counter = 0;
+                for (int j = 0; j < E; j++) {
+                    if (j != i && set[j].valid) {
+                        set[j].lru_counter++;
+                    }
+                }
+            }
+        }
 
         free(line);
     }
