@@ -183,6 +183,7 @@ int main(int argc, char *argv[])
     while (
         fgets(line, ASSUMED_LINE_LENGTH, fp) != NULL
     ) {
+        char *copied_line = strdup(line);
         char *stripped_line = strip(line);
         char op = 0;
         addr_t addr = 0, size = 0, cnt = 0;
@@ -197,7 +198,7 @@ int main(int argc, char *argv[])
                     addr = strtoul(token, NULL, 16);
                     break;
                 case 2:
-                    size = (addr_t)atoi(token);
+                    size = (addr_t)strtoul(token, NULL, 10);
                     break;
             }
             cnt++;
@@ -208,7 +209,7 @@ int main(int argc, char *argv[])
             (op != 'L' && op != 'S' && op != 'M' && op != 'I') ||
             cnt != 3
         ) {
-            printf("Invalid trace line: %s\n", line);
+            printf("Invalid trace line: %s\n", copied_line);
             exit(1);
         }
 
