@@ -136,7 +136,41 @@ int main(int argc, char *argv[])
     int B = 1 << b; // block size in bytes
     int hits = 0, misses = 0, evictions = 0;
 
-    
+    char *line = NULL;
+    while (
+        line = get_next_line(fp),
+        line != NULL
+    ) {
+        line = strip(line);
+        char op = 0;
+        size_t addr = 0, size = 0, cnt = 0;
+
+        char *token = strtok(line, " ,");
+        while (token != NULL && cnt < 3) {
+            switch (cnt++) {
+                case 0:
+                    op = token[0];
+                    break;
+                case 1:
+                    addr = strtoul(token, NULL, 16);
+                    break;
+                case 2:
+                    size = (size_t)atoi(token);
+                    break;
+            }
+            token = strtok(NULL, " ,");
+        }
+
+        if (cnt != 3) {
+            free(line);
+            printf("Invalid trace line: %s\n", line);
+            exit(1);
+        }
+
+        if (op == 'I') continue;
+
+        free(line);
+    }
 
     printSummary(hits, misses, evictions);
     return 0;
