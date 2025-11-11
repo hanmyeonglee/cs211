@@ -90,15 +90,16 @@ void transpose_submit(int M, int N, int A[N][M], int B[M][N])
                     v6 = A[rblock + 6][j];
                     v7 = A[rblock + 7][j];
 
-                    i = j + 4;
-                    B[i][rblock + 4] = v0;
-                    B[i][rblock + 5] = v1;
-                    B[i][rblock + 6] = v2;
-                    B[i][rblock + 7] = v3;
                     B[j][rblock + 4] = v4;
                     B[j][rblock + 5] = v5;
                     B[j][rblock + 6] = v6;
                     B[j][rblock + 7] = v7;
+                    
+                    i = j + 4;
+                    B[i][rblock] = v0;
+                    B[i][rblock + 1] = v1;
+                    B[i][rblock + 2] = v2;
+                    B[i][rblock + 3] = v3;
                 } // at least, A[4 - 7] loaded, and B[0 - 3] is done
                 for (i = rblock + 4 ; i < rblock + 8 ; i++) {
                     v0 = A[i][cblock + 4];
