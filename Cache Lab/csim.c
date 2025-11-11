@@ -91,6 +91,7 @@ char *strip(char *s) {
 }
 
 char *access(
+    cache_t cache,
     addr_t set_index,
     addr_t tag
 ) {
@@ -177,7 +178,7 @@ int main(int argc, char *argv[])
         usage();
     }
 
-    *fp = fopen(trace_file, "r");
+    fp = fopen(trace_file, "r");
     if (fp == NULL) {
         printf("Error: Could not open trace file '%s'\n", trace_file);
         exit(1);
@@ -236,9 +237,9 @@ int main(int argc, char *argv[])
         addr_t set_index = (addr >> b) & (S - 1);
         addr_t tag = addr >> (b + s);
 
-        char *result = access(set_index, tag);
+        char *result = access(cache, set_index, tag);
         if (op == 'M') {
-            char *result2 = access(set_index, tag);
+            char *result2 = access(cache, set_index, tag);
             if (verbose) {
                 printf("%c %lx,%lu %s %s\n", op, addr, size, result, result2);
             }
