@@ -167,6 +167,7 @@ int main(int argc, char *argv[])
     }
 
     int S = 1 << s;
+    int B = 1 << b;
 
     cache_t cache = malloc(S * sizeof(cache_set_t));
     for (int i = 0; i < S; i++) {
@@ -182,8 +183,7 @@ int main(int argc, char *argv[])
     while (
         fgets(line, ASSUMED_LINE_LENGTH, fp) != NULL
     ) {
-        char copied_line[ASSUMED_LINE_LENGTH];
-        strcpy(copied_line, line);
+        char *copied_line = strdup(line);
         char *stripped_line = strip(line);
         char op = 0;
         addr_t addr = 0, size = 0, cnt = 0;
