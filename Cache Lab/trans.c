@@ -22,6 +22,99 @@ int is_transpose(int M, int N, int A[N][M], int B[M][N]);
 char transpose_submit_desc[] = "Transpose submission";
 void transpose_submit(int M, int N, int A[N][M], int B[M][N])
 {
+    int i, j, cblock, rblock, v0, v1, v2, v3, v4, v5, v6, v7;
+    if (M == 61 && N == 67) {
+        for (cblock = 0 ; cblock < 61 ; cblock += 8) {
+            for (rblock = 0 ; rblock < 67 ; rblock += 8) {
+                for (i = rblock ; i < rblock + 8 && i < 67 ; i++) {
+                    for (j = cblock ; j < cblock + 8 && j < 61 ; j++) {
+                        v0 = A[i][j];
+                        B[j][i] = v0;
+                    }
+                }
+            }
+        }
+    } else if (M == 32 && N == 32) {
+        for (cblock = 0 ; cblock < 32 ; cblock += 8) {
+            for (rblock = 0 ; rblock < 32 ; rblock += 8) {
+                for (i = rblock ; i < rblock + 8 ; i++) {
+                    v0 = A[i][cblock];
+                    v1 = A[i][cblock + 1];
+                    v2 = A[i][cblock + 2];
+                    v3 = A[i][cblock + 3];
+                    v4 = A[i][cblock + 4];
+                    v5 = A[i][cblock + 5];
+                    v6 = A[i][cblock + 6];
+                    v7 = A[i][cblock + 7];
+
+                    B[cblock][i] = v0;
+                    B[cblock + 1][i] = v1;
+                    B[cblock + 2][i] = v2;
+                    B[cblock + 3][i] = v3;
+                    B[cblock + 4][i] = v4;
+                    B[cblock + 5][i] = v5;
+                    B[cblock + 6][i] = v6;
+                    B[cblock + 7][i] = v7;
+                }
+            }
+        }
+    } else { // M == 64 and N == 64
+        for (cblock = 0 ; cblock < 64 ; cblock += 8) {
+            for (rblock = 0 ; rblock < 64 ; rblock += 8) {
+                for (i = rblock ; i < rblock + 4 ; i++) {
+                    v0 = A[i][cblock];
+                    v1 = A[i][cblock + 1];
+                    v2 = A[i][cblock + 2];
+                    v3 = A[i][cblock + 3];
+                    v4 = A[i][cblock + 4];
+                    v5 = A[i][cblock + 5];
+                    v6 = A[i][cblock + 6];
+                    v7 = A[i][cblock + 7];
+
+                    B[cblock][i] = v0;
+                    B[cblock + 1][i] = v1;
+                    B[cblock + 2][i] = v2;
+                    B[cblock + 3][i] = v3;
+                    B[cblock][i + 4] = v4;
+                    B[cblock + 1][i + 4] = v5;
+                    B[cblock + 2][i + 4] = v6;
+                    B[cblock + 3][i + 4] = v7;
+                } // at least, B[0 - 3] loaded
+                for (j = cblock ; j < cblock + 4 ; j++) {
+                    v0 = B[j][rblock + 4];
+                    v1 = B[j][rblock + 5];
+                    v2 = B[j][rblock + 6];
+                    v3 = B[j][rblock + 7];
+                    v4 = A[rblock + 4][j];
+                    v5 = A[rblock + 5][j];
+                    v6 = A[rblock + 6][j];
+                    v7 = A[rblock + 7][j];
+
+                    B[j][rblock + 4] = v4;
+                    B[j][rblock + 5] = v5;
+                    B[j][rblock + 6] = v6;
+                    B[j][rblock + 7] = v7;
+                    
+                    i = j + 4;
+                    B[i][rblock] = v0;
+                    B[i][rblock + 1] = v1;
+                    B[i][rblock + 2] = v2;
+                    B[i][rblock + 3] = v3;
+                } // at least, A[4 - 7] loaded, and B[0 - 3] is done
+                for (i = rblock + 4 ; i < rblock + 8 ; i++) {
+                    v0 = A[i][cblock + 4];
+                    v1 = A[i][cblock + 5];
+                    v2 = A[i][cblock + 6];
+                    v3 = A[i][cblock + 7];
+
+                    B[cblock + 4][i] = v0;
+                    B[cblock + 5][i] = v1;
+                    B[cblock + 6][i] = v2;
+                    B[cblock + 7][i] = v3;
+                }
+            }
+        }
+    }
 }
 
 /* 
