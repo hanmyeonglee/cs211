@@ -24,10 +24,10 @@ void transpose_submit(int M, int N, int A[N][M], int B[M][N])
 {
     int i, j, cblock, rblock, v0, v1, v2, v3, v4, v5, v6, v7;
     if (M == 61 && N == 67) {
-        for (cblock = 0 ; cblock < 61 ; cblock += 8) {
-            for (rblock = 0 ; rblock < 67 ; rblock += 8) {
-                for (i = rblock ; i < rblock + 8 && i < 67 ; i++) {
-                    for (j = cblock ; j < cblock + 8 && j < 61 ; j++) {
+        for (cblock = 0 ; cblock < 61 ; cblock += 17) {
+            for (rblock = 0 ; rblock < 67 ; rblock += 17) {
+                for (i = rblock ; i < rblock + 17 && i < 67 ; i++) {
+                    for (j = cblock ; j < cblock + 17 && j < 61 ; j++) {
                         v0 = A[i][j];
                         B[j][i] = v0;
                     }

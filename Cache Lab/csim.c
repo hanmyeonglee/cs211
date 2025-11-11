@@ -17,13 +17,29 @@ int hits = 0, misses = 0, evictions = 0;
 typedef unsigned long addr_t;
 
 typedef struct {
-    bool valid;
     addr_t tag;
     int timestamp;
+    bool valid;
 } cache_line_t;
 
 typedef cache_line_t* cache_set_t;
 typedef cache_set_t* cache_t;
+
+FILE *fp = NULL;
+cache_t cache = NULL;
+
+void cleanup() {
+    if (cache != NULL) {
+        int S = 1 << s;
+        for (int i = 0; i < S; i++) {
+            free(cache[i]);
+        }
+        free(cache);
+    }
+    if (fp != NULL) {
+        fclose(fp);
+    }
+}
 
 void usage() {
     puts(
@@ -116,6 +132,8 @@ char *access(
 
 int main(int argc, char *argv[])
 {
+    atexit(cleanup);
+
     int opt;
     char *trace_file = NULL;
     
@@ -160,7 +178,7 @@ int main(int argc, char *argv[])
         usage();
     }
 
-    FILE *fp = fopen(trace_file, "r");
+    fp = fopen(trace_file, "r");
     if (fp == NULL) {
         printf("Error: Could not open trace file '%s'\n", trace_file);
         exit(1);
@@ -168,7 +186,7 @@ int main(int argc, char *argv[])
 
     int S = 1 << s;
 
-    cache_t cache = malloc(S * sizeof(cache_set_t));
+    cache = malloc(S * sizeof(cache_set_t));
     for (int i = 0; i < S; i++) {
         cache[i] = malloc(E * sizeof(cache_line_t));
         for (int j = 0; j < E; j++) {
@@ -186,7 +204,8 @@ int main(int argc, char *argv[])
         strcpy(copied_line, line);
         char *stripped_line = strip(line);
         char op = 0;
-        addr_t addr = 0, size = 0, cnt = 0;
+        addr_t addr = 0, size = 0;
+        int cnt = 0;
 
         char *token = strtok(stripped_line, " ,");
         while (token != NULL && cnt < 3) {
@@ -232,12 +251,6 @@ int main(int argc, char *argv[])
     }
 
     printSummary(hits, misses, evictions);
-
-    for (int i = 0; i < S; i++) {
-        free(cache[i]);
-    }
-    free(cache);
-    fclose(fp);
     
     return 0;
 }
