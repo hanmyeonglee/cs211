@@ -175,10 +175,10 @@ void eval(char *cmdline)
 
     int is_builtin = builtin_cmd(argv);
     if (is_builtin) return;
+
     sigset_t mask, prev;
     sigemptyset(&mask);
     sigaddset(&mask, SIGCHLD);
-
     sigprocmask(SIG_BLOCK, &mask, &prev);
 
     pid_t pid = fork();
@@ -292,6 +292,7 @@ void do_bgfg(char **argv)
  */
 void waitfg(pid_t pid)
 {
+    while (pid == fgpid(jobs)) usleep(5000);
     return;
 }
 
