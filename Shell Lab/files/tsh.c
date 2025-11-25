@@ -3,6 +3,8 @@
  * 
  * <Put your name and login ID here>
  */
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -166,6 +168,35 @@ int main(int argc, char **argv)
 */
 void eval(char *cmdline) 
 {
+    char *argv[MAXLINE + 1];
+    int isbg = parseline(cmdline, argv);
+
+    if (argv[0] == NULL) return;
+
+    int is_builtin = builtin_cmd(argv);
+    if (is_builtin) return;
+    sigset_t mask, prev;
+    sigemptyset(&mask);
+    sigaddset(&mask, SIGCHLD);
+
+    sigprocmask(SIG_BLOCK, &mask, &prev);
+
+    pid_t pid = fork();
+    if (pid == 0) {
+        sigprocmask(SIG_SETMASK, &prev, NULL);
+        setpgid(0, 0);
+        if (execve(argv[0], argv, environ) < 0) {
+            printf("%s: Command not found.\n", argv[0]);
+            exit(0);
+        }
+    }
+
+    addjob(jobs, pid, isbg ? BG : FG, cmdline);
+    sigprocmask(SIG_SETMASK, &prev, NULL);
+
+    if (!isbg) waitfg(pid);
+    else printf("[%d] (%d) %s", pid2jid(pid), pid, cmdline);
+
     return;
 }
 
