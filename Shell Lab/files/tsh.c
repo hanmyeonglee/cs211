@@ -169,7 +169,7 @@ int main(int argc, char **argv)
 */
 void eval(char *cmdline) 
 {
-    char *argv[MAXLINE + 1];
+    char *argv[MAXARGS];
     int isbg = parseline(cmdline, argv);
 
     if (argv[0] == NULL) return;
