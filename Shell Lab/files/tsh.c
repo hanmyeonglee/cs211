@@ -14,6 +14,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <errno.h>
+#include <limits.h>
 
 /* Misc manifest constants */
 #define MAXLINE    1024   /* max line size */
@@ -284,6 +285,66 @@ int builtin_cmd(char **argv)
  */
 void do_bgfg(char **argv) 
 {
+    char *cmd = argv[0];
+    char *id_string = argv[1];
+    if (cmd == NULL || id_string == NULL) {
+        printf("%s command requires PID or %%jobid argument\n", cmd);
+        return;
+    }
+    if (!(strcmp(cmd, "bg") == 0 || strcmp(cmd, "fg") == 0)) {
+        printf("do_bgfg: Internal error: cmd %s\n", cmd);
+        return;
+    }
+    if (!isdigit(id_string[0]) && id_string[0] != '%') {
+        printf("%s: %s is invalid PID or %%jobid\n", cmd, id_string);
+        return;
+    }
+
+    int is_bg = strcmp(cmd, "bg") == 0;
+    int is_jid = id_string[0] == '%';
+    
+    errno = 0;
+    char *endptr;
+    long id = strtol(is_jid ? id_string + 1 : id_string, &endptr, 10);
+
+    if (*endptr != '\0' && *endptr != '\n') {
+        if (is_jid)
+            printf("%s: [%s] - Invalid jobid format\n", cmd, id_string);
+        else
+            printf("%s: (%s) - Invalid PID format\n", cmd, id_string);
+        
+        return;
+    }
+
+    if (errno == ERANGE || id > INT_MAX || id < INT_MIN) {
+        if (is_jid)
+            printf("%s: [%s] - Invalid jobid\n", cmd, id_string);
+        else
+            printf("%s: (%s) - Invalid PID\n", cmd, id_string);
+        
+        return;
+    }
+
+    int parsed_id = (int) id;
+    struct job_t *job = is_jid ? getjobjid(jobs, parsed_id) : getjobpid(jobs, (pid_t) parsed_id);
+    if (job == NULL) {
+        if (is_jid)
+            printf("%s: [%d] - No such job\n", cmd, parsed_id);
+        else
+            printf("%s: (%d) - No such process\n", cmd, parsed_id);
+        
+        return;
+    }
+
+    kill(-job->pid, SIGCONT);
+    if (is_bg) {
+        job->state = BG;
+        printf("[%d] (%d) %s", job->jid, job->pid, job->cmdline);
+    } else {
+        job->state = FG;
+        waitfg(job->pid);
+    }
+
     return;
 }
 
