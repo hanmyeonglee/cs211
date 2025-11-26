@@ -187,7 +187,7 @@ void eval(char *cmdline)
         sigprocmask(SIG_SETMASK, &prev, NULL);
         setpgid(0, 0);
         if (execve(argv[0], argv, environ) < 0) {
-            printf("%s: Command not found.\n", argv[0]);
+            printf("%s: Command not found\n", argv[0]);
             exit(0);
         }
     }
@@ -296,7 +296,7 @@ void do_bgfg(char **argv)
         return;
     }
     if (!isdigit(id_string[0]) && id_string[0] != '%') {
-        printf("%s: %s is invalid PID or %%jobid\n", cmd, id_string);
+        printf("%s: argument must be a PID or %%jobid\n", cmd);
         return;
     }
 
@@ -318,9 +318,9 @@ void do_bgfg(char **argv)
 
     if (errno == ERANGE || id > INT_MAX || id < INT_MIN) {
         if (is_jid)
-            printf("%s: [%s] - Invalid jobid\n", cmd, id_string);
+            printf("%s: No such job\n", id_string);
         else
-            printf("%s: (%s) - Invalid PID\n", cmd, id_string);
+            printf("(%s): No such process\n", id_string);
         
         return;
     }
@@ -329,10 +329,10 @@ void do_bgfg(char **argv)
     struct job_t *job = is_jid ? getjobjid(jobs, parsed_id) : getjobpid(jobs, (pid_t) parsed_id);
     if (job == NULL) {
         if (is_jid)
-            printf("%s: [%d] - No such job\n", cmd, parsed_id);
+            printf("%s: No such job\n", id_string);
         else
-            printf("%s: (%d) - No such process\n", cmd, parsed_id);
-        
+            printf("(%s): No such process\n", id_string);
+                
         return;
     }
 
