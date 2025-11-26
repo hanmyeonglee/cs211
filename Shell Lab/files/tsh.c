@@ -370,6 +370,8 @@ void waitfg(pid_t pid)
  */
 void sigchld_handler(int sig) 
 {
+    int _errno = errno;
+
     int wstatus;
     pid_t child_pid;
     while (
@@ -394,6 +396,7 @@ void sigchld_handler(int sig)
         }
     }
 
+    errno = _errno;
     return;
 }
 
@@ -404,10 +407,13 @@ void sigchld_handler(int sig)
  */
 void sigint_handler(int sig) 
 {
-    pid_t fg_pid = fgpid(jobs);
-    if (fg_pid == 0) return;
+    int _errno = errno;
 
-    kill(-fg_pid, SIGINT);
+    pid_t fg_pid = fgpid(jobs);
+    if (fg_pid != 0)
+        kill(-fg_pid, SIGINT);
+
+    errno = _errno;
     return;
 }
 
@@ -418,10 +424,13 @@ void sigint_handler(int sig)
  */
 void sigtstp_handler(int sig) 
 {
-    pid_t fg_pid = fgpid(jobs);
-    if (fg_pid == 0) return;
+    int _errno = errno;
 
-    kill(-fg_pid, SIGTSTP);
+    pid_t fg_pid = fgpid(jobs);
+    if (fg_pid != 0)
+        kill(-fg_pid, SIGTSTP);
+
+    errno = _errno;
     return;
 }
 
