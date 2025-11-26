@@ -380,6 +380,10 @@ void sigchld_handler(int sig)
  */
 void sigint_handler(int sig) 
 {
+    pid_t fg_pid = fgpid(jobs);
+    if (fg_pid == 0) return;
+
+    kill(-fg_pid, SIGINT);
     return;
 }
 
